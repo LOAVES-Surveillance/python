@@ -1,5 +1,4 @@
-
-m picamera import PiCamera, Color
+from picamera import PiCamera, Color
 from time import sleep
 import datetime
 import time
