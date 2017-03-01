@@ -23,10 +23,10 @@ for i in range(10):
         aText = 'Timestamp: {:%m/%d/%Y %H:%M:%S}'.format(datetime.datetime.now())
         ##    camera.annotate_background = Color('blue')
         ##    camera.annotate_foreground = Color('green')
-            camera.annotate_text_size = 50
-                camera.annotate_text = aText
-                    sleep(1)
+        camera.annotate_text_size = 50
+        camera.annotate_text = aText
+        sleep(1)
                         
                         #camera.capture('/home/pi/Desktop/image.jpg') #takes picture
-                        camera.stop_recording()
-                        camera.stop_preview()
+camera.stop_recording()
+camera.stop_preview()
