@@ -20,20 +20,44 @@ timmer_count = 10
 photo_number = 1
 reset_time = record_amount
 GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)                             #Use the regular pin identifiers. 
-GPIO.setup(PIR, GPIO.IN)                                  #Read output from PIR motion sensor
-date_string = time.strftime('%m_%d_%Y')           #Date for time stamp
-hour_string = time.strftime("%H:%M:%S")           #Time used for file naming
-standard_hour_string = time.strftime("%r")          #Time used for video time stamp overlay
+GPIO.setmode(GPIO.BOARD)                             	#Use the regular pin identifiers. 
+GPIO.setup(PIR, GPIO.IN)                                #Read output from PIR motion sensor
+date_string = time.strftime('%m_%d_%Y')           		#Date for time stamp
+hour_string = time.strftime("%H:%M:%S")           		#Time used for file naming
+standard_hour_string = time.strftime("%r")          	#Time used for video time stamp overlay
 mypath = '/home/pi/LOAVES/pics/' + date_string + '/'
 
 if not os.path.isdir(mypath):
         os.makedirs(mypath)
 
+
+settings = open("settings.txt", "r")		#open the settings.txt file
+Motion = settings.read(3)				    #read a piece and assign the value to the Motion Sensor
+Servo  = settings.read(6)
+
+M = int(Motion[2:3])					    #snip just the ON\OFF part of the value and keep it
+S = int(Servo[3:4])
+settings.close()
+
+if M == 1:
+	M = "ON"
+else:
+	M = "OFF"
+
+if S == 1:
+	S = "ON"
+else:
+	S = "OFF"
+
 print "Starting up"               
+print "Motion is %s" % M			        # The state of the motion and servo will show on boot
+print "Servo is %s " % S 
+
+
+
 while (timmer_count > 0):                        # Delay that gives the pi sufficient 
         print (timmer_count)                     # time to boot up before trying to 
-        time.sleep(1)                          # connect to the network
+        time.sleep(1)                            # connect to the network
         timmer_count -= 1
 
 gauth = GoogleAuth()                             # Google drive API
@@ -75,8 +99,8 @@ try:
 				print "Recording in progress"
 				print "Will record for %s seconds." %(record_amount)
 			 
-				while (record_amount >= 0):                #This will blink red to let you know it's
-					record_amount -= 1                  			#currently recording
+				while (record_amount >= 0):                		 
+					record_amount -= 1                  			
 					time.sleep(1)
 					standard_hour_string = time.strftime("%r")
 					camera.annotate_text = standard_hour_string
