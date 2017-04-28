@@ -11,53 +11,39 @@ camera = PiCamera()
 camera.resolution = (512, 384)
 camera.framerate = 32
 record_amount = 10
-delay = 5
+delay = 2
 
 
 #Other Variables:
 PIR = 16
-timmer_count = 10
+timmer_count = 3
 photo_number = 1
 reset_time = record_amount
 GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)                             	#Use the regular pin identifiers. 
-GPIO.setup(PIR, GPIO.IN)                                #Read output from PIR motion sensor
-date_string = time.strftime('%m_%d_%Y')           		#Date for time stamp
-hour_string = time.strftime("%H:%M:%S")           		#Time used for file naming
-standard_hour_string = time.strftime("%r")          	#Time used for video time stamp overlay
+GPIO.setmode(GPIO.BOARD)                             #Use the regular pin identifiers. 
+GPIO.setup(PIR, GPIO.IN)                                  #Read output from PIR motion sensor
+date_string = time.strftime('%m_%d_%Y')           #Date for time stamp
+hour_string = time.strftime("%H:%M:%S")           #Time used for file naming
+standard_hour_string = time.strftime("%r")          #Time used for video time stamp overlay
 mypath = '/home/pi/LOAVES/pics/' + date_string + '/'
+
+
+
+def check():
+        previous_line = ""
+        with open('addr.txt','r') as infile:            #open the addr.txt file$
+                for current_line in infile:
+                        if 'wlan0' in previous_line:    #looks for wlan0 so it $
+                                return current_line
+                        previous_line = current_line
+
 
 if not os.path.isdir(mypath):
         os.makedirs(mypath)
 
-
-settings = open("settings.txt", "r")		#open the settings.txt file
-Motion = settings.read(3)				    #read a piece and assign the value to the Motion Sensor
-Servo  = settings.read(6)
-
-M = int(Motion[2:3])					    #snip just the ON\OFF part of the value and keep it
-S = int(Servo[3:4])
-settings.close()
-
-if M == 1:
-	M = "ON"
-else:
-	M = "OFF"
-
-if S == 1:
-	S = "ON"
-else:
-	S = "OFF"
-
-print "Starting up"               
-print "Motion is %s" % M			        # The state of the motion and servo will show on boot
-print "Servo is %s " % S 
-
-
-
 while (timmer_count > 0):                        # Delay that gives the pi sufficient 
         print (timmer_count)                     # time to boot up before trying to 
-        time.sleep(1)                            # connect to the network
+        time.sleep(1)                          # connect to the network
         timmer_count -= 1
 
 gauth = GoogleAuth()                             # Google drive API
@@ -74,6 +60,42 @@ else:                                            # Initialize the saved creds
     
 gauth.SaveCredentialsFile("mycreds.txt")         # Save the current credentials to a file
 drive = GoogleDrive(gauth)                       # Set drive location using .json file
+
+
+ip_address = check()                    #perform check for address
+text = ip_address[20:35]                #snip the section of the address
+file1 = drive.CreateFile({'title': 'loaf_ip.txt'})
+file1.SetContentString(text)
+file1.Upload()                          #save IP address to txt file
+
+
+myfile = drive.CreateFile({'id': '0B4w2yS9E929tMUpfTmYzUXhzUG8'})
+myfile.GetContentFile('loaf_settings.txt', mimetype='text/html')
+
+
+
+settings = open("loaf_settings.txt", "r")               #open the settings.txt file
+Motion = settings.read(3)                       #read a piece and assign the value to the Motion Sensor
+Servo  = settings.read(6)
+
+M = int(Motion[2:3])                            #snip just the ON\OFF part of the value and keep it
+S = int(Servo[3:4])
+settings.close()
+
+if M == 1:
+        M = "ON"
+else:
+        M = "OFF"
+
+if S == 1:
+        S = "ON"
+else:
+        S = "OFF"
+
+print "Starting up"
+print "Motion is %s" % M                        # The state of the motion and servo will show on boot
+print "Servo is %s " % S
+
 
 
 
@@ -99,8 +121,8 @@ try:
 				print "Recording in progress"
 				print "Will record for %s seconds." %(record_amount)
 			 
-				while (record_amount >= 0):                		 
-					record_amount -= 1                  			
+				while (record_amount >= 0):                #This will blink red to let you know it's
+					record_amount -= 1                  			#currently recording
 					time.sleep(1)
 					standard_hour_string = time.strftime("%r")
 					camera.annotate_text = standard_hour_string
@@ -127,3 +149,4 @@ except:
         
 finally:
         GPIO.cleanup()
+
